@@ -6,6 +6,9 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 
+// NativeWind — Tailwind 클래스 동작을 위한 global.css. _layout 에서 한 번만 import.
+import '@/style/global.css';
+
 import { useColorScheme } from '@/components/useColorScheme';
 
 export {

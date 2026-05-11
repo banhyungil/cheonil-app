@@ -1,7 +1,23 @@
 {
+  // 저장 시 자동 코드 액션 — 너무 광범위한 source.fixAll / source.sortMembers 는 행걸림 유발해서 제외.
+  // ESLint 의 fixAll 만 명시적으로 지정 (ESLint 안 쓰면 그것도 빼도 됨).
   "editor.codeActionsOnSave": {
-    "source.fixAll": "explicit",
     "source.organizeImports": "explicit",
-    "source.sortMembers": "explicit"
-  }
+    "source.fixAll.eslint": "explicit"
+  },
+  // cn() / cva() / clsx() 같은 유틸리티 함수 안의 클래스도 IntelliSense 인식
+  "tailwindCSS.experimental.classRegex": [
+    ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
+    ["cn\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
+    ["clsx\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"]
+  ],
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+
+  // global.css 의 @tailwind / @apply 같은 비표준 at-rule 경고 끄기
+  "css.lint.unknownAtRules": "ignore"
 }
