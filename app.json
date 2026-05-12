@@ -39,6 +39,21 @@
         {
           "microphonePermission": "음성 주문 입력에 마이크를 사용합니다."
         }
+      ],
+      [
+        "react-native-android-widget",
+        {
+          "widgets": [
+            {
+              "name": "VoiceOrder",
+              "label": "음성 주문",
+              "minWidth": "110dp",
+              "minHeight": "40dp",
+              "description": "탭하여 바로 음성 주문 시작",
+              "resizeMode": "horizontal|vertical"
+            }
+          ]
+        }
       ]
     ],
     "experiments": {

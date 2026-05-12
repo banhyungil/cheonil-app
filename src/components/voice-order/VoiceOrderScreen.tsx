@@ -1,12 +1,27 @@
 import { FontAwesome } from '@expo/vector-icons'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { useVoiceOrder } from '@/hooks/useVoiceOrder'
 
-export default function VoiceOrderScreen() {
+interface VoiceOrderScreenProps {
+  /** true 면 화면 진입과 동시에 자동 녹음 시작 (위젯 탭 → autoStart=1 deep link 경로). */
+  autoStart?: boolean
+}
+
+export default function VoiceOrderScreen({ autoStart = false }: VoiceOrderScreenProps) {
   const { state, result, error, start, stopAndSend, reset } = useVoiceOrder()
+
+  // 위젯에서 들어왔을 때 (autoStart=true) 첫 마운트 시 1회만 녹음 시작.
+  // state 가 idle 이 아니면 (이미 다른 흐름 진행 중) 건너뛰기.
+  const autoStartedRef = useRef(false)
+  useEffect(() => {
+    if (!autoStart || autoStartedRef.current) return
+    if (state !== 'idle') return
+    autoStartedRef.current = true
+    void start()
+  }, [autoStart, state, start])
 
   const buttonLabel = useMemo(() => {
     switch (state) {
