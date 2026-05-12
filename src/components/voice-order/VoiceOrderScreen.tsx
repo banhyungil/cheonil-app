@@ -33,7 +33,7 @@ export default function VoiceOrderScreen() {
     }
   }
 
-  // 마이크 버튼 상태별 배경색 — emerald 가 기본 브랜드, 녹음 중 red, 에러 amber, 전송 중 slate
+  // 마이크 버튼 상태별 배경색 — primary (천일 그린) 가 기본 브랜드, 녹음 중 red, 에러 amber, 전송 중 slate
   const micBg =
     state === 'recording'
       ? 'bg-red-500'
@@ -41,7 +41,7 @@ export default function VoiceOrderScreen() {
         ? 'bg-slate-500'
         : state === 'error'
           ? 'bg-amber-500'
-          : 'bg-emerald-500'
+          : 'bg-primary-500'
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50 dark:bg-slate-900" edges={['top']}>
@@ -61,7 +61,7 @@ export default function VoiceOrderScreen() {
           showsVerticalScrollIndicator={false}
         >
           {state === 'success' && result ? (
-            <View className="w-full max-w-md gap-2 rounded-2xl border-l-4 border-emerald-500 bg-white px-5 py-4 dark:bg-slate-800">
+            <View className="w-full max-w-md gap-2 rounded-2xl border-l-4 border-primary-500 bg-white px-5 py-4 dark:bg-slate-800">
               <Text className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 주문 완료
               </Text>
