@@ -71,8 +71,12 @@ export async function createVoiceOrder(audio: {
   name: string
   type: string
 }): Promise<VoiceOrderCreateRes> {
+  // expo-file-system 의 File 은 URI 확장자로 type 을 추론 — Android m4a 가 .mp3 확장자로 저장되면
+  // 'audio/mpeg' 로 표기됨. 이 MIME mismatch 는 백엔드 AudioNormalizer 가 ffmpeg 정규화로 흡수.
+  //
+  // RN 환경 한계로 Blob 생성자(ArrayBuffer X) / File.slice(type override) / { uri, name, type } 객체
+  // (expo/fetch 거부) 모두 막혀서 type override 는 클라이언트 단에서 포기. 백엔드 정규화가 처리.
   const file = new File(audio.uri)
-  // File 이 Blob 인터페이스를 구현 → FormData 에 표준 방식으로 첨부
   const formData = new FormData()
   formData.append('audio', file as unknown as Blob, audio.name)
 

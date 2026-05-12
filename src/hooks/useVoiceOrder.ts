@@ -96,11 +96,11 @@ export function useVoiceOrder() {
 
     setState('sending')
     try {
-      // m4a (iOS/Android HIGH_QUALITY preset 기본 출력)
+      // m4a (iOS/Android HIGH_QUALITY preset 기본 출력) — IANA 표준 MIME 은 audio/mp4.
       const res = await createVoiceOrder({
         uri,
         name: 'speech.m4a',
-        type: 'audio/m4a',
+        type: 'audio/mp4',
       })
       setResult(res)
       setState('success')
