@@ -15,10 +15,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.cheonil.app"
+      "bundleIdentifier": "com.ban.cheonil"
     },
     "android": {
-      "package": "com.cheonil.app",
+      "package": "com.ban.cheonil",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
