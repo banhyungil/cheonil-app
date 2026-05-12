@@ -261,20 +261,135 @@ proguard / R8 minification 영향 가능성. `eas.json` 의 production 에서 mi
 
 ---
 
-## 9. 주의사항
+## 9. 첫 출시 시 자주 막히는 검증 항목
 
-### 키스토어 분실 절대 금지
-EAS 가 관리하지만 본인 Expo 계정에 묶임. 계정 잃으면 같은 앱으로 업데이트 불가. **2FA + 백업 코드 보관**.
+Play Console 의 AAB 업로드는 단순 파일 검증 + 정책 검증 두 단계. 자주 걸리는 케이스.
 
+### 9-1. 패키지 이름 mismatch
+
+```
+APK 또는 Android App Bundle의 패키지 이름에는 com.ban.cheonil이(가) 있어야 합니다.
+```
+
+**원인**: `app.json` 의 `android.package` 가 Play Console 에 등록한 앱의 패키지명과 다름.
+
+**해결**:
+1. `app.json` 의 `android.package` 를 Play Console 등록값으로 일치시킴 (iOS bundleIdentifier 도 같이 맞추는 게 깔끔)
+2. **재빌드** — 패키지명은 native 코드에 박혀서 JS 변경만으론 안 됨
+3. 새 AAB 재업로드
+
+⚠️ 패키지명 변경 = EAS 에선 새 앱으로 인식 → 새 키스토어 발급 prompt 뜸. **아직 Play Store 출시 전이면 Y 로 새 키 발급 OK**.
+
+### 9-2. 개인정보처리방침 URL 누락
+
+```
+APK 또는 Android App Bundle에 개인정보처리방침이 필요한 권한을 사용합니다 (android.permission.RECORD_AUDIO).
+```
+
+**원인**: 마이크 (RECORD_AUDIO) 권한 쓰면 Play 정책상 개인정보처리방침 URL 필수.
+
+**해결**:
+1. PRIVACY.md 같은 정책 페이지 작성 (수집 항목 / 목적 / 보유기간 / 제3자 제공 / 연락처)
+2. 공개 URL 발급 (GitHub repo 의 blob URL / Notion 공개 페이지 / Gist 등 — public 접근 가능해야 Google 봇이 읽음)
+3. Play Console → **앱 콘텐츠 → 개인정보처리방침** 에 URL 입력
+
+⚠️ private GitHub repo 는 Google 봇 접근 불가 → public 으로 전환하거나 Notion/Gist 사용.
+
+### 9-3. 데이터 안전성 양식
+
+Play Console 의 "데이터 안전성" 섹션도 필수. 어떤 데이터를 수집/공유/암호화하는지 신고:
+- 음성 녹음 (수집, 처리)
+- 변환 텍스트 (수집, 처리)
+- 주문 메타데이터 (수집, 처리)
+- 제3자 공유: Google Cloud STT (fallback 시)
+
+---
+
+## 10. 키스토어 lock-in lifecycle
+
+키스토어가 언제 "고정" 되는지 정확히 알면 초반 시행착오에 마음 편함.
+
+| 단계 | 키 lock? | 메모 |
+|------|---------|------|
+| AAB 업로드 시도 → 검증 실패 (패키지명, 정책 등) | ❌ 아직 | Play DB 에 아무것도 등록 안 됨, 다른 키로 재시도 자유 |
+| AAB 업로드 성공 → 출시 드래프트 | ❌ 아직 | 출시 안 했으니 변경 자유 |
+| **출시 (Rollout)** → 테스터/사용자에게 배포 | ✅ **여기서 lock** | 이후 같은 키로만 업데이트 가능 |
+| 출시 후 키 변경 필요 시 | upload key reset 요청 | Play Console → 앱 무결성 → 1~2일 검토 |
+
+**결론**: **출시 (Rollout) 전까진 자유롭게 새 키 발급/재빌드 가능**. 검증 실패는 lock 트리거가 아님.
+
+### 키 종류 두 가지
+
+| 키 | 누가 관리 | 변경 가능? |
+|----|---------|----------|
+| **Upload key** | 개발자 (EAS) — AAB 사이닝용 | 가능 (지원 요청, 1~2일) |
+| **App signing key** | Google (Play App Signing) — 사용자에게 배포되는 APK 사이닝 | 사실상 고정 |
+
+Play App Signing 가 기본 (2021년 이후 신규 앱) → 개발자는 upload key 만 신경. Google 이 app signing key 보유.
+
+### 키스토어 백업
+
+EAS 가 관리하지만 Expo 계정 잃으면 끝. **2FA + 백업 코드 보관**.
+
+확인/다운로드:
 ```bash
 npx eas-cli credentials
 ```
 
-### applicationId 변경 금지
-Play Store 등록 후 `app.json` 의 `package` 바꾸면 **별개 앱**. 기존 앱 업데이트 못 함. 처음에 신중히.
+---
+
+## 11. 패키지 이름 (applicationId) 운영 룰
+
+### 처음 정할 때 신중
+
+`app.json` 의 `android.package`:
+- Play Store 출시 후 변경 불가 (변경하면 별개 앱으로 인식, 기존 앱 업데이트 못 함)
+- iOS `bundleIdentifier` 도 같은 값으로 맞추는 게 관례
+- 일반적 형식: `com.{org}.{app}` — 예: `com.ban.cheonil`
+
+### 출시 전 변경은 OK
+
+아직 Play Store 출시 안 한 시점이면 자유롭게 바꿔도 OK. 다만:
+- EAS 가 새 앱으로 인식 → 새 키스토어 발급 prompt
+- dev build / 기존 빌드와 packageId 충돌로 디바이스 동시 설치 불가 → 기존 앱 삭제 후 새 빌드 설치
 
 ### dev build / production build 동시 설치 불가
-같은 `applicationId` 라 충돌. 한쪽 지우고 다른 쪽 설치.
+
+같은 `applicationId` 라 한 디바이스에 한쪽만. 한쪽 지우고 다른 쪽 설치. 둘 다 유지하고 싶으면 `applicationIdSuffix` 로 dev 만 다른 패키지명 (`com.ban.cheonil.dev` 등) — 다만 위젯 deep link 도 따라 바뀌어야 하므로 신중.
+
+---
+
+## 12. 출시 노트 (Release notes) 작성
+
+Play Console 의 "이번 버전의 새로운 기능" 노트. 언어당 **최대 500자**.
+
+### 첫 출시 (1.0.0) 예시
+
+```
+첫 공개 버전입니다.
+
+전화로 들어온 주문을 받아 적는 대신
+음성으로 즉시 등록하는 도구입니다.
+
+"강남점, 양념치킨 두 개"
+이렇게 말씀하시면 자동으로 주문이 생성돼요.
+
+✨ 사용 팁
+· 홈 화면에 "음성 주문" 위젯 추가 → 탭 한 번으로 녹음
+· 또박또박 발음할수록 정확도 ↑
+· 잘못 들렸으면 다시 녹음하면 됩니다
+```
+
+### 이후 업데이트 톤
+
+```
+v1.1.0
+· 음성 인식 정확도 개선
+· 위젯 디자인 정돈
+· 작은 버그 수정
+```
+
+가족 매장 내부 테스트면 친근한 톤 OK. 공개 출시로 확장하면 더 미니멀한 변경사항 나열 톤 권장.
 
 ---
 
